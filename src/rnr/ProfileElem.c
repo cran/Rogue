@@ -31,6 +31,7 @@
 #include "ProfileElem.h"
 
 
+// Defines function Array *cloneProfileArrayFlat (const Array *array)
 CLONE_ARRAY_FLAT(cloneProfileArrayFlat, ProfileElem*, ProfileElemAttr*)
 
 
@@ -64,8 +65,11 @@ Array* profileToArray(HashTable *profile, boolean updateFrequencyCount, boolean 
   ProfileElemAttr
     *profileElemAttr;
 
+  result->hasCommonAttributes = 1;
   result->commonAttributes = CALLOC(1, sizeof(ProfileElemAttr));
-  result->commonAttributes = memcpy(result->commonAttributes, profile->commonAttributes, sizeof(ProfileElemAttr));
+  result->commonAttributes = memcpy(result->commonAttributes,
+                                    profile->commonAttributes,
+                                    sizeof(ProfileElemAttr));
   profileElemAttr = result->commonAttributes;
 
   result->length = profile->entryCount;

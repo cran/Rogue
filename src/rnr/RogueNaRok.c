@@ -396,15 +396,16 @@ int getSupportOfMRETreeHelper(Array *bipartitionProfile, Dropset *dropset)
         FLIP_NTH_BIT(taxaDroppedHere, iter->index);
     }
 
-  qsort(bipartitionProfile->arrayTable, bipartitionProfile->length, sizeof(ProfileElem**), sortBySupport);
+  qsort(bipartitionProfile->arrayTable, bipartitionProfile->length,
+        sizeof(ProfileElem**), sortBySupport);
 
-  Array *mreBips = CALLOC(1,sizeof(Array));
-  mreBips->arrayTable = CALLOC((mxtips-3), sizeof(ProfileElem*));
-  mreBips->length = 0;
+  Array *mreBips = createArray(mxtips - 3, sizeof(ProfileElem*));
+
 
 #ifdef MYDEBUG
   for(i = 1; i < bipartitionProfile->length; i ++)
-    assert(GET_PROFILE_ELEM(bipartitionProfile,i-1)->treeVectorSupport >= GET_PROFILE_ELEM(bipartitionProfile,i)->treeVectorSupport);
+    assert(GET_PROFILE_ELEM(bipartitionProfile, i - 1)->treeVectorSupport >=
+      GET_PROFILE_ELEM(bipartitionProfile, i)->treeVectorSupport);
 #endif
 
   FOR_0_LIMIT(i, bipartitionProfile->length)
@@ -434,14 +435,16 @@ int getSupportOfMRETreeHelper(Array *bipartitionProfile, Dropset *dropset)
         addElemToArray(GET_PROFILE_ELEM(bipartitionProfile,i), mreBips);
     }
 
+  free(taxaDroppedHere); // MS ADDITION: plug memory leak.
+
   if(computeSupport)
     FOR_0_LIMIT(i,mreBips->length)
       result +=  GET_PROFILE_ELEM(mreBips,i)->treeVectorSupport;
   else
     result = mreBips->length;
 
-  free(mreBips->arrayTable);  free(mreBips);
-  free(bipartitionProfile->arrayTable);  free(bipartitionProfile);
+  freeArray(mreBips);
+  freeArray(bipartitionProfile);
 
   return result;
 }
@@ -495,7 +498,8 @@ void getSupportGainedThreshold(MergingEvent *me, Array *bipartitionsById)
         *elemA = GET_PROFILE_ELEM(bipartitionsById, me->mergingBipartitions.pair[0]),
         *elemB = GET_PROFILE_ELEM(bipartitionsById, me->mergingBipartitions.pair[1]);
 
-      if(rogueMode == VANILLA_CONSENSUS_OPT && elemA->treeVectorSupport + elemB->treeVectorSupport < thresh)
+      if(rogueMode == VANILLA_CONSENSUS_OPT &&
+         elemA->treeVectorSupport + elemB->treeVectorSupport < thresh)
               return;
 
       isInMLTree = elemA->isInMLTree || elemB->isInMLTree;
@@ -552,22 +556,17 @@ int getSupportOfMRETree(Array *bipartitionsById,  Dropset *dropset)
     i;
 
   /* initial case  */
-  if( NOT dropset)
+  if(NOT dropset)
     {
       Array *array = cloneProfileArrayFlat(bipartitionsById);
-      int tmp = getSupportOfMRETreeHelper( array, dropset);
+      int tmp = getSupportOfMRETreeHelper(array, dropset);
       return tmp;
     }
 
   Array
-    *emergedBips = CALLOC(1,sizeof(Array)),
-    *finalArray  = CALLOC(1,sizeof(Array)),
-    *tmpArray = cloneProfileArrayFlat(bipartitionsById);
-  emergedBips->arrayTable = CALLOC(lengthOfList(mergingEvents), sizeof(ProfileElem*));
-  emergedBips->length = 0;
-
-  finalArray->arrayTable = CALLOC(tmpArray->length, sizeof(ProfileElem*));
-  finalArray->length = 0;
+    *tmpArray = cloneProfileArrayFlat(bipartitionsById),
+    *emergedBips = createArray(lengthOfList(mergingEvents), sizeof(ProfileElem*)),
+    *finalArray  = createArray(tmpArray->length, sizeof(ProfileElem*));
 
   /* kill merging bips from array */
   List *meIter = mergingEvents ;
@@ -923,13 +922,13 @@ int getInitScore(Array *bipartitionProfile)
   FOR_0_LIMIT(i,bipartitionProfile->length)
     {
       ProfileElem
-        *elem = GET_PROFILE_ELEM(bipartitionProfile,i);
+        *elem = GET_PROFILE_ELEM(bipartitionProfile, i);
 
       switch(rogueMode)
         {
         case VANILLA_CONSENSUS_OPT:
           if(elem->treeVectorSupport > thresh)
-            score += computeSupport ? elem->treeVectorSupport : 1 ;
+            score += computeSupport ? elem->treeVectorSupport : 1;
           break;
 
         case ML_TREE_OPT:
@@ -1184,8 +1183,7 @@ void combineEventsForOneDropset(Array *allDropsets, Dropset *refDropset, Array *
 HashTable *combineMergerEvents(HashTable *mergingHash, Array *bipartitionsById)
 {
   /* hash to array  */
-  Array *allDropsets =  CALLOC(1,sizeof(Array));
-  allDropsets->arrayTable = CALLOC(mergingHash->entryCount, sizeof(Dropset**));
+  Array *allDropsets = createArray(mergingHash->entryCount, sizeof(Dropset**));
 
   HashTableIterator *htIter;
   int cnt = 0;
@@ -1277,7 +1275,8 @@ void getLostSupportThreshold(MergingEvent *me, Array *bipartitionsById)
 }
 
 
-void evaluateDropset(HashTable *mergingHash, Dropset *dropset,Array *bipartitionsById, List *consensusBipsCanVanish )
+void evaluateDropset(HashTable *mergingHash, Dropset *dropset,
+                     Array *bipartitionsById, List *consensusBipsCanVanish )
 {
   int result = 0;
   List
@@ -1490,7 +1489,8 @@ Dropset *evaluateEvents(HashTable *mergingHash, Array *bipartitionsById, Array *
       FOR_0_LIMIT(i, allDropsets->length)
         {
           Dropset *dropset =  GET_DROPSET_ELEM(allDropsets, i);
-          evaluateDropset(mergingHash, dropset, bipartitionsById, consensusBipsCanVanish);
+          evaluateDropset(mergingHash, dropset, bipartitionsById,
+                          consensusBipsCanVanish);
         }
 #endif
     }
@@ -1841,8 +1841,8 @@ errcode doomRogues(All *tr, const char *bootStrapFileName,
     {
       PR("\nMaximum dropset size (%d) too large. If we prune %d taxa, then there \n\
  will be no bipartitions left and thus such a pruned tree set can never \n\
- have a higher information content (in terms of RBIC) than the original \n\
- tree.\n", maxDropsetSize, mxtips-3);
+ have a higher information content than the original tree.\n",
+         maxDropsetSize, mxtips - 3);
       return ERR_BIG_DROPSET;
     }
 
@@ -1868,13 +1868,12 @@ errcode doomRogues(All *tr, const char *bootStrapFileName,
       elem->numberOfBitsSet = genericBitCount(elem->bitVector, bitVectorLength);
     }
 
-  Array
-    *bipartitionsById = CALLOC(1,sizeof(Array));
-  bipartitionsById->arrayTable = CALLOC(bipartitionProfile->length, sizeof(ProfileElem*));
+  Array *bipartitionsById = createArray(bipartitionProfile->length, sizeof(ProfileElem*));
   bipartitionsById->length = bipartitionProfile->length;
   FOR_0_LIMIT(i,bipartitionsById->length)
-    GET_PROFILE_ELEM(bipartitionsById,i) = GET_PROFILE_ELEM(bipartitionProfile, i);
-  qsort(bipartitionsById->arrayTable, bipartitionsById->length, sizeof(ProfileElem**), sortById);
+    GET_PROFILE_ELEM(bipartitionsById, i) = GET_PROFILE_ELEM(bipartitionProfile, i);
+  qsort(bipartitionsById->arrayTable, bipartitionsById->length,
+        sizeof(ProfileElem**), sortById);
 
   numBips = bipartitionProfile->length;
 
@@ -1945,7 +1944,9 @@ errcode doomRogues(All *tr, const char *bootStrapFileName,
       masterBarrier(THREAD_GET_EVENTS, globalPArgs);
       free(candidateBips);
 #else
-      createOrUpdateMergingHash(tr, mergingHash, bipartitionProfile, bipartitionsById, candidateBips, firstMerge, indexByNumberBits );
+      createOrUpdateMergingHash(tr, mergingHash, bipartitionProfile,
+                                bipartitionsById, candidateBips, firstMerge,
+                                indexByNumberBits);
 #endif
       firstMerge = FALSE;
 
@@ -1973,7 +1974,8 @@ errcode doomRogues(All *tr, const char *bootStrapFileName,
       /**********************/
       /* evaluate dropsets  */
       /**********************/
-      bestDropset = evaluateEvents(mergingHash, bipartitionsById, bipartitionProfile);
+      bestDropset = evaluateEvents(mergingHash, bipartitionsById,
+                                   bipartitionProfile);
       free(indexByNumberBits);
 
 #ifdef PRINT_TIME
@@ -2039,13 +2041,12 @@ errcode doomRogues(All *tr, const char *bootStrapFileName,
       if(elem)
           freeProfileElem(elem);
     }
-  free(((ProfileElemAttr*)bipartitionProfile->commonAttributes));
   freeArray(bipartitionProfile);
   freeArray(bipartitionsById);
   destroyHashTable(mergingHash, freeDropsetDeepInHash);
 
   fclose(rogueOutput);
-  for(i = 0; i < dropRound + 1; ++i)
+  for(i = 0; i != dropRound + 1; ++i)
     {
       Dropset *theDropset = dropsetPerRound[i];
       if(theDropset)
