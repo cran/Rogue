@@ -1,29 +1,29 @@
-#' Cophenetic distance between leaves of unweighted tree
+#' Graph Geodesic between leaves of unweighted tree
 #'
 #' @param x Object of class `phylo`.
 #' @param nTip Integer specifying number of leaves.
 #' @param asMatrix Logical specifying whether to coerce output to matrix format.
-#' @return `Cophenetic()` returns an unnamed integer matrix describing the
+#' @return `GraphGeodesic()` returns an unnamed integer matrix describing the
 #' number of edges between each pair of edges.
 #' @author Martin R. Smith, modifying algorithm by Emmanuel Paradis
 #' in `ape::dist.nodes()`.
 #' @importFrom ape dist.nodes
 #' @keywords internal
 #' @examples
-#' Cophenetic(TreeTools::BalancedTree(5))
+#' GraphGeodesic(TreeTools::BalancedTree(5))
 #' @useDynLib Rogue, .registration = TRUE
 #' @export
-Cophenetic <- function (x, nTip = length(x$tip.label), log = FALSE,
-                        asMatrix = TRUE) {
+GraphGeodesic <- function (x, nTip = length(x$tip.label), log = FALSE,
+                           asMatrix = TRUE) {
   x <- Preorder(x)
   edge <- x$edge - 1L
   nNode <- x$Nnode
-  ret <- .Call(if (isTRUE(log)) "COPHENETIC_LOG" else "COPHENETIC",
-                      n_tip = as.integer(nTip),
-                      n_node = as.integer(nNode),
-                      parent = as.integer(edge[, 1]),
-                      child = as.integer(edge[, 2]),
-                      n_edge = as.integer(dim(edge)[1]))
+  ret <- .Call(if (isTRUE(log)) "LOG_GRAPH_GEODESIC" else "GRAPH_GEODESIC",
+               n_tip = as.integer(nTip),
+               n_node = as.integer(nNode),
+               parent = as.integer(edge[, 1]),
+               child = as.integer(edge[, 2]),
+               n_edge = as.integer(dim(edge)[1]))
 
   # Return:
   if (log) {
@@ -37,18 +37,39 @@ Cophenetic <- function (x, nTip = length(x$tip.label), log = FALSE,
   }
 }
 
+#' @rdname GraphGeodesic
+#' @export
+Cophenetic <- function (x, nTip = length(x$tip.label), log = FALSE,
+                        asMatrix = TRUE) {
+  .Deprecated('GraphGeodesic')
+  GraphGeodesic(x, nTip, log, asMatrix)
+}
+
 #' Tip instability
 #'
 #' `TipInstability()` calculates the instability of each leaf in a tree.
 #' Unstable leaves are likely to display roguish behaviour.
 #'
-#' I define the *instability* of a pair of leaves as the median absolute
-#' divergence in the cophenetic distance
+#' \insertCite{SmithCons;textual}{Rogue} defines the *instability* of a pair
+#' of leaves as the median absolute divergence in the graph geodesic
 #' (the number of edges in the shortest path between the leaves) across all
-#' trees, normalized against the mean cophenetic distance.
+#' trees, normalized against the mean graph geodesic.
 #' The instability of a single leaf is the mean instability of all pairs that
 #' include that leaf; higher values characterise leaves whose position is more
 #' variable between trees.
+#'
+#' Other concepts of leaf instability include
+#'
+#' - The 'taxonomic instability index', as implemented in Mesquite:
+#' described by \insertCite{Thomson2010;textual}{Rogue} as
+#' \eqn{\sum\limits_{(x, y), j \neq i}{\frac{|D~ijx~ - D~ijy~|}{(D~ijx~ - D~ijy~)^2}}}{\sum[x, y, j != i] (D[ijx] - D[ijy] / (D[ijx] - D[ijy])^2 )},
+#' where \eqn{D~ijx~}{D[ijx]} is the patristic distance (i.e. length of edges)
+#' between leaves \eqn{i} and \eqn{j} in tree \eqn{x}.
+#'
+#' - the average stability of triplets (i.e. quartets including the root) that
+#' include the leaf \insertCite{Thorley1999}{Rogue}, implemented in "Phyutility"
+#' \insertCite{Smith2008}{Rogue}; and related to 'positional congruence'
+#' measures \insertCite{Estabrook1992,Pol2009}{Rogue}.
 #'
 #' @inheritParams RogueTaxa
 #' @param log Logical specifying whether to log-transform distances when
@@ -59,6 +80,8 @@ Cophenetic <- function (x, nTip = length(x$tip.label), log = FALSE,
 #' calculate leaf stability.
 #' @param checkTips Logical specifying whether to check that tips are numbered
 #' consistently.
+#' @references
+#' \insertAllCited{}
 #' @examples
 #' library("TreeTools", quietly = TRUE)
 #' trees <- AddTipEverywhere(BalancedTree(8), 'Rogue')[3:6]
@@ -73,8 +96,9 @@ Cophenetic <- function (x, nTip = length(x$tip.label), log = FALSE,
 TipInstability <- function (trees, log = TRUE, average = 'mean',
                             deviation = 'sd',
                             checkTips = TRUE) {
-  if (inherits(trees, 'phylo')) {
-    stop("`trees` must contain more than one tree.")
+  if (inherits(trees, 'phylo') || length(trees) < 2L) {
+    tips <- TipLabels(trees)
+    return(setNames(double(length(tips)), tips))
   }
   labels <- trees[[1]]$tip.label
   if (checkTips) {
@@ -82,14 +106,16 @@ TipInstability <- function (trees, log = TRUE, average = 'mean',
     if (length(unique(nTip)) > 1) {
       stop("Trees must have same number of leaves")
     }
-    trees[-1] <- lapply(trees[-1], RenumberTips, labels)
+    trees <- c(trees[[1]],
+               structure(lapply(trees[-1], RenumberTips, labels),
+                         class = 'multiPhylo'))
     nTip <- nTip[1]
   } else {
     nTip <- NTip(trees[[1]])
   }
   nTree <- length(trees)
 
-  dists <- vapply(trees, Cophenetic, double(nTip * nTip),
+  dists <- vapply(trees, GraphGeodesic, double(nTip * nTip),
                   nTip = nTip, log = log, asMatrix = FALSE)
 
   whichDev <- pmatch(tolower(deviation), c('sd', 'mad'))
@@ -138,14 +164,15 @@ ColByStability <- function (trees, log = TRUE,
 #' Detect rogue taxa using phylogenetic information distance
 #'
 #' Calculate the volatility of each tip: namely, the impact on the mean
-#' phylogenetic information distance between trees when that tip is removed.
+#' phylogenetic information distance \insertCite{Smith2020}{Rogue} between
+#' trees when that tip is removed.
+#' Effective when the number of trees is small.
 #'
 #' @inheritParams RogueTaxa
 #' @return `TipVolatility()` returns a named vector listing the volatility
 #' index calculated for each leaf.
 #' @references
-#' \insertRef{Aberer2013}{Rogue}
-#' \insertRef{Wilkinson2017}{Rogue}
+#' \insertAllCited{}
 #' @examples
 #' library("TreeTools", quietly = TRUE)
 #' trees <- AddTipEverywhere(BalancedTree(8), 'Rogue')
@@ -157,14 +184,14 @@ ColByStability <- function (trees, log = TRUE,
 #' plot(consensus(trees), tip.color = col)
 #' plot(ConsensusWithout(trees, names(sb[sb == max(sb)])))
 #' @importFrom TreeDist PhylogeneticInfoDistance
-#' @importFrom TreeTools CladisticInfo
+#' @importFrom TreeTools CladisticInfo DropTipPhylo
 #' @family tip instability functions
 #' @export
 TipVolatility <- function (trees) {
   tips <- trees[[1]]$tip.label
   startInfo <- mean(CladisticInfo(trees))
   info <- vapply(tips, function (drop) {
-    tr <- lapply(trees, DropTip, drop)
+    tr <- lapply(trees, DropTipPhylo, drop, check = FALSE)
     c(meanInfo = mean(CladisticInfo(tr)),
       meanDist = mean(PhylogeneticInfoDistance(tr, normalize = TRUE)))
   }, double(2))

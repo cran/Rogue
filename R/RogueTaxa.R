@@ -5,13 +5,28 @@
 #' bipartition, shared phylogenetic, or mutual clustering concepts of
 #' information.
 #'
+#' "Rogue" or (loosely) "wildcard" taxa \insertCite{Nixon1992}{Rogue} are
+#' leaves whose position in a tree is poorly constrained, typically because
+#' much of the phylogenetic data associated with the taxon is either missing or
+#' in conflict with other data \insertCite{Kearney2002}{Rogue}.
 #'
+#' These functions use heuristic methods to identify rogue taxa whose removal
+#' improves the information content of a consensus tree, by the definitions
+#' of information discussed below.
+#'
+#' @section Information criteria:
 #' The splitwise phylogenetic information content measure produces the best
 #' results \insertCite{SmithCons}{Rogue}.
 #' It uses the splitwise information content as a shortcut, which involves
 #' double counting of some information (which may or may not be desirable).
 #' The same holds for the mutual clustering information measure; this measure
 #' is less obviously suited to the detection of rogues.
+#' This measure interprets split frequency as a proxy for the probability
+#' that a split is true, which is a valid interpretation of a Bayesian posterior
+#' sample \insertCite{Holder2008}{Rogue},
+#' a reasonable but imperfect interpretation of a bootstrap sample
+#' \insertCite{Berry1996}{Rogue}, and a bad interpretation of a sample of
+#' most parsimonious trees.
 #'
 #' The "relative bipartition information criterion" (\acronym{RBIC}) is
 #' the sum of all support values divided by the maximum possible support in a
@@ -70,7 +85,7 @@
 #' C library by Andre Aberer (<andre.aberer at googlemail.com>)
 #'
 #' @importFrom ape write.tree
-#' @importFrom TreeTools Consensus ConsensusWithout
+#' @importFrom TreeTools Consensus ConsensusWithout RenumberTips
 #' @importFrom TreeDist SplitwiseInfo ClusteringInfo ConsensusInfo
 #' @importFrom utils capture.output read.table
 #' @references \insertAllCited{}
@@ -86,6 +101,8 @@ RogueTaxa <- function (trees,
                        mreOptimization = FALSE,
                        threshold = 50,
                        verbose = FALSE) {
+  p <- threshold / 100
+
   # Check format of `trees`
   if (!inherits(trees, 'multiPhylo')) {
     if (inherits(trees, 'phylo')) {
@@ -93,7 +110,7 @@ RogueTaxa <- function (trees,
                         taxNum = NA_character_,
                         taxon = NA_character_,
                         rawImprovement = NA_real_,
-                        IC = ConsensusInfo(c(trees), info = info[1]),
+                        IC = ConsensusInfo(c(trees), info = info[1], p = p),
                         stringsAsFactors = FALSE))
     }
     trees <- structure(trees, class = 'multiPhylo')
@@ -120,8 +137,8 @@ RogueTaxa <- function (trees,
   if (any(duplicated(leaves))) {
     stop("All leaves must bear unique labels.")
   }
-  trees[] <- lapply(trees, RenumberTips, trees[[1]])
-  trees[] <- lapply(trees, Preorder)
+  trees <- lapply(trees, RenumberTips, trees[[1]])
+  trees <- structure(lapply(trees, Preorder), class = 'multiPhylo')
 
   # Select and apply method
   info <- tolower(info[1])
@@ -144,11 +161,13 @@ RogueTaxa <- function (trees,
                                mreOptimization = mreOptimization,
                                threshold = threshold, verbose = verbose),
                    Roguehalla(trees, dropsetSize = dropsetSize, info = 'phylo',
-                              neverDrop = neverDrop),
+                              p = p, neverDrop = neverDrop),
                    Roguehalla(trees, dropsetSize = dropsetSize, info = 'clust',
+                              p = p, neverDrop = neverDrop),
+                   QuickRogue(trees, info = 'phylo', p = p,
                               neverDrop = neverDrop),
-                   QuickRogue(trees, info = 'phylo', neverDrop = neverDrop),
-                   QuickRogue(trees, info = 'clust', neverDrop = neverDrop)
+                   QuickRogue(trees, info = 'clust', p = p,
+                              neverDrop = neverDrop)
   )
 
   # Format return value
@@ -162,9 +181,9 @@ RogueTaxa <- function (trees,
   if (returnTree) {
     drops <- unlist(strsplit(result[-1, 'taxon'], ','))
     if (is.null(drops)) {
-      Consensus(trees, p = threshold / 100)
+      Consensus(trees, p = p)
     } else {
-      ConsensusWithout(trees, drops, p = threshold / 100)
+      ConsensusWithout(trees, drops, p = p)
     }
   } else {
     result

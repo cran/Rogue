@@ -35,13 +35,26 @@ consistently.}
 Unstable leaves are likely to display roguish behaviour.
 }
 \details{
-I define the \emph{instability} of a pair of leaves as the median absolute
-divergence in the cophenetic distance
+\insertCite{SmithCons;textual}{Rogue} defines the \emph{instability} of a pair
+of leaves as the median absolute divergence in the graph geodesic
 (the number of edges in the shortest path between the leaves) across all
-trees, normalized against the mean cophenetic distance.
+trees, normalized against the mean graph geodesic.
 The instability of a single leaf is the mean instability of all pairs that
 include that leaf; higher values characterise leaves whose position is more
 variable between trees.
+
+Other concepts of leaf instability include
+\itemize{
+\item The 'taxonomic instability index', as implemented in Mesquite:
+described by \insertCite{Thomson2010;textual}{Rogue} as
+\eqn{\sum\limits_{(x, y), j \neq i}{\frac{|D~ijx~ - D~ijy~|}{(D~ijx~ - D~ijy~)^2}}}{\sum[x, y, j != i] (D[ijx] - D[ijy] / (D[ijx] - D[ijy])^2 )},
+where \eqn{D~ijx~}{D[ijx]} is the patristic distance (i.e. length of edges)
+between leaves \eqn{i} and \eqn{j} in tree \eqn{x}.
+\item the average stability of triplets (i.e. quartets including the root) that
+include the leaf \insertCite{Thorley1999}{Rogue}, implemented in "Phyutility"
+\insertCite{Smith2008}{Rogue}; and related to 'positional congruence'
+measures \insertCite{Estabrook1992,Pol2009}{Rogue}.
+}
 }
 \examples{
 library("TreeTools", quietly = TRUE)
@@ -49,6 +62,9 @@ trees <- AddTipEverywhere(BalancedTree(8), 'Rogue')[3:6]
 plot(consensus(trees), tip.col = ColByStability(trees))
 instab <- TipInstability(trees, log = FALSE, ave = 'mean', dev = 'mad')
 plot(ConsensusWithout(trees, names(instab[instab > 0.2])))
+}
+\references{
+\insertAllCited{}
 }
 \seealso{
 Other tip instability functions: 
