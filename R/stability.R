@@ -13,7 +13,7 @@
 #' GraphGeodesic(TreeTools::BalancedTree(5))
 #' @useDynLib Rogue, .registration = TRUE
 #' @export
-GraphGeodesic <- function (x, nTip = length(x$tip.label), log = FALSE,
+GraphGeodesic <- function(x, nTip = length(x$tip.label), log = FALSE,
                            asMatrix = TRUE) {
   x <- Preorder(x)
   edge <- x$edge - 1L
@@ -39,7 +39,7 @@ GraphGeodesic <- function (x, nTip = length(x$tip.label), log = FALSE,
 
 #' @rdname GraphGeodesic
 #' @export
-Cophenetic <- function (x, nTip = length(x$tip.label), log = FALSE,
+Cophenetic <- function(x, nTip = length(x$tip.label), log = FALSE,
                         asMatrix = TRUE) {
   .Deprecated('GraphGeodesic')
   GraphGeodesic(x, nTip, log, asMatrix)
@@ -74,9 +74,9 @@ Cophenetic <- function (x, nTip = length(x$tip.label), log = FALSE,
 #' @inheritParams RogueTaxa
 #' @param log Logical specifying whether to log-transform distances when
 #' calculating leaf stability.
-#' @param average Character specifying whether to use `'mean'` or `'median'`
+#' @param average Character specifying whether to use `"mean"` or `"median"`
 #' tip distances to calculate leaf stability.
-#' @param deviation Character specifying whether to use `'sd'` or `'mad'` to
+#' @param deviation Character specifying whether to use `"sd"` or `"mad"` to
 #' calculate leaf stability.
 #' @param checkTips Logical specifying whether to check that tips are numbered
 #' consistently.
@@ -93,8 +93,8 @@ Cophenetic <- function (x, nTip = length(x$tip.label), log = FALSE,
 #' @importFrom matrixStats rowMedians
 #' @importFrom Rfast rowmeans rowMads rowVars
 #' @export
-TipInstability <- function (trees, log = TRUE, average = 'mean',
-                            deviation = 'sd',
+TipInstability <- function(trees, log = TRUE, average = "mean",
+                            deviation = "sd",
                             checkTips = TRUE) {
   if (inherits(trees, 'phylo') || length(trees) < 2L) {
     tips <- TipLabels(trees)
@@ -113,7 +113,6 @@ TipInstability <- function (trees, log = TRUE, average = 'mean',
   } else {
     nTip <- NTip(trees[[1]])
   }
-  nTree <- length(trees)
 
   dists <- vapply(trees, GraphGeodesic, double(nTip * nTip),
                   nTip = nTip, log = log, asMatrix = FALSE)
@@ -148,17 +147,21 @@ TipInstability <- function (trees, log = TRUE, average = 'mean',
 #' @importFrom stats cmdscale setNames
 #' @importFrom TreeTools TipLabels
 #' @export
-ColByStability <- function (trees, log = TRUE,
-                            average = 'mean', deviation = 'sd') {
-  score <- TipInstability(trees, log = log, average = average,
-                          deviation = deviation)
-  score <- score - min(score)
-  score <- score / max(score)
-
-  # Return:
-  setNames(hcl.colors(131, 'inferno')[1 + (score * 100)],
-           TipLabels(trees[[1]]))
-
+ColByStability <- function(trees, log = TRUE,
+                            average = "mean", deviation = "sd") {
+  if (is.null(trees)) {
+    # Return:
+    character(0)
+  } else {
+    score <- TipInstability(trees, log = log, average = average,
+                            deviation = deviation)
+    score <- score - min(score)
+    score <- score / max(score)
+  
+    # Return:
+    setNames(hcl.colors(131, "inferno")[1 + (score * 100)],
+             TipLabels(trees[[1]]))
+  }
 }
 
 #' Detect rogue taxa using phylogenetic information distance
@@ -187,10 +190,9 @@ ColByStability <- function (trees, log = TRUE,
 #' @importFrom TreeTools CladisticInfo DropTipPhylo
 #' @family tip instability functions
 #' @export
-TipVolatility <- function (trees) {
+TipVolatility <- function(trees) {
   tips <- trees[[1]]$tip.label
-  startInfo <- mean(CladisticInfo(trees))
-  info <- vapply(tips, function (drop) {
+  info <- vapply(tips, function(drop) {
     tr <- lapply(trees, DropTipPhylo, drop, check = FALSE)
     c(meanInfo = mean(CladisticInfo(tr)),
       meanDist = mean(PhylogeneticInfoDistance(tr, normalize = TRUE)))

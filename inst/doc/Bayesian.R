@@ -7,8 +7,8 @@ online <- tryCatch({
     read.csv("https://raw.githubusercontent.com/ms609/hyoliths/master/MrBayes/hyo.nex.pstat")
     TRUE
   },
-  warning = function (w) invokeRestart(""),
-  error = function (e) FALSE
+  warning = function(w) invokeRestart(""),
+  error = function(e) FALSE
 )
 
 ## ----load-trees---------------------------------------------------------------
@@ -19,14 +19,14 @@ if (online) {
   run1Trees <- ape::read.nexus(run1.t)
   if (packageVersion('ape') <= "5.6.1") {
     # Workaround for a bug in ape, hopefully fixed in v5.6.2
-    run1Trees <- structure(lapply(run1Trees, function (tr) {
+    run1Trees <- structure(lapply(run1Trees, function(tr) {
       tr$tip.label <- attr(run1Trees, 'TipLabel')
       tr
     }), class = 'multiPhylo')
   }
 } else {
   # If no internet connection, we can generate some example trees instead
-  run1Trees <- structure(unlist(lapply(0:21, function (backbone) {
+  run1Trees <- structure(unlist(lapply(0:21, function(backbone) {
     AddTipEverywhere(ape::as.phylo(0, nTip = 12), 'ROGUE')
   }), recursive = FALSE), class = 'multiPhylo')
 }
@@ -41,28 +41,13 @@ sampleSize <- 100
 trees <- run1Trees[seq(from = burninFrac * nTrees, to = nTrees,
                        length.out = sampleSize)]
 
-## ----spectrum-legend----------------------------------------------------------
-# Adding a gradient as a legend is a slightly fussy task:
-SpectrumLegend <- function (spectrum, labels) {
-  nCol <- length(spectrum)
-  
-  segX <- rep(2, nCol)
-  segY <- seq_len(nCol) / nCol
-  legendY0 <- 2
-  legendY1 <- (NTip(trees[1]) - 2) * 0.2
-  segY <- legendY0 + (segY * (legendY1 - legendY0))
-  segments(segX, segY - segY[1] + legendY0, y1 = segY, col = spectrum,
-           lwd = 4)
-  text(range(segX), c(legendY0, legendY1), 
-       labels, pos = 4)
-}
-
 ## ----initial-view, fig.width = 8, fig.asp = 2/3-------------------------------
 plenary <- Consensus(trees, p = 0.5)
 
 par(mar = rep(0, 4), cex = 0.85)
 plot(plenary, tip.color = ColByStability(trees))
-SpectrumLegend(hcl.colors(131, 'inferno')[1:101], c("Stable", "Unstable"))
+SpectrumLegend(0.06, 0.06, legend = c("Stable", "Unstable"),
+               palette = hcl.colors(131, 'inferno')[1:101])
 
 ## ----find-rogues--------------------------------------------------------------
 rogues <- QuickRogue(trees)
@@ -92,8 +77,9 @@ whichTaxon <- length(rogueTaxa) # Select an illuminating taxon
 positions <- RoguePlot(trees, rogueTaxa[whichTaxon], p = 0.5)
 
 # Plot a legend for the edge colours
-SpectrumLegend(spectrum = colorRampPalette(c(par("fg"), "#009E73"),
-                                           space = "Lab")(100),
-               labels = paste(range(positions$onEdge, positions$atNode),
-                              'trees'))
+SpectrumLegend(0.06, 0.06,
+               legend = paste(range(positions$onEdge, positions$atNode),
+                              'trees'),
+               palette = colorRampPalette(c(par("fg"), "#009E73"),
+                                           space = "Lab")(100))
 
