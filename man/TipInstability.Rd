@@ -13,7 +13,13 @@ TipInstability(
   checkTips = TRUE
 )
 
-ColByStability(trees, log = TRUE, average = "mean", deviation = "sd")
+ColByStability(
+  trees,
+  log = TRUE,
+  average = "mean",
+  deviation = "sd",
+  pal = hcl.colors(131, "inferno")[1:101]
+)
 }
 \arguments{
 \item{trees}{List of trees to analyse.}
@@ -29,6 +35,13 @@ calculate leaf stability.}
 
 \item{checkTips}{Logical specifying whether to check that tips are numbered
 consistently.}
+
+\item{pal}{A vector listing a sequence of colours to be used for plotting.
+The earliest entries will be assigned to the most stable tips.}
+}
+\value{
+\code{ColByStability()} returns a named character vector that assigns a
+colour to each leaf in \code{trees} according to their stability.
 }
 \description{
 \code{TipInstability()} calculates the instability of each leaf in a tree.
@@ -45,22 +58,22 @@ variable between trees.
 
 Other concepts of leaf instability include
 \itemize{
-\item The 'taxonomic instability index', as implemented in Mesquite:
+\item The "taxonomic instability index", as implemented in Mesquite:
 described by \insertCite{Thomson2010;textual}{Rogue} as
 \eqn{\sum\limits_{(x, y), j \neq i}{\frac{|D~ijx~ - D~ijy~|}{(D~ijx~ - D~ijy~)^2}}}{\sum[x, y, j != i] (D[ijx] - D[ijy] / (D[ijx] - D[ijy])^2 )},
 where \eqn{D~ijx~}{D[ijx]} is the patristic distance (i.e. length of edges)
 between leaves \eqn{i} and \eqn{j} in tree \eqn{x}.
 \item the average stability of triplets (i.e. quartets including the root) that
 include the leaf \insertCite{Thorley1999}{Rogue}, implemented in "Phyutility"
-\insertCite{Smith2008}{Rogue}; and related to 'positional congruence'
+\insertCite{Smith2008}{Rogue}; and related to "positional congruence"
 measures \insertCite{Estabrook1992,Pol2009}{Rogue}.
 }
 }
 \examples{
 library("TreeTools", quietly = TRUE)
-trees <- AddTipEverywhere(BalancedTree(8), 'Rogue')[3:6]
+trees <- AddTipEverywhere(BalancedTree(8), "Rogue")[3:6]
 plot(consensus(trees), tip.col = ColByStability(trees))
-instab <- TipInstability(trees, log = FALSE, ave = 'mean', dev = 'mad')
+instab <- TipInstability(trees, log = FALSE, ave = "mean", dev = "mad")
 plot(ConsensusWithout(trees, names(instab[instab > 0.2])))
 }
 \references{
