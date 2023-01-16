@@ -1,6 +1,6 @@
-ecc4df169497b9d68fe0a8327b4882d0 *DESCRIPTION
+f35c29ac7612e26b26c59777dabdcfed *DESCRIPTION
 35988b566e77a88e1661b807b326c53d *NAMESPACE
-c628f66a07f09c7628ae733032321e7a *NEWS.md
+37d3bbf3b9675309d74084b9f049c9d5 *NEWS.md
 922e6f2684d939b8c8cd41ca8597bb87 *R/Rogue-package.R
 f79043aea3c979acb49271519ef70f30 *R/RogueTaxa.R
 d0d6a9e568e28b78a68c3b4602fd4cf8 *R/SPIC.R
@@ -8,7 +8,7 @@ d0d6a9e568e28b78a68c3b4602fd4cf8 *R/SPIC.R
 986fcccbb03ee147ebd354fec47979c0 *R/utilities.R
 cbc93456650006ec2f361bd5c1cad93e *R/zz_RogueNaRok.R
 bdbdb38fb4bf65ae5de6388526a3c6e2 *R/zzz.R
-aeb3dc158026a6f704fc991de7c18240 *build/partial.rdb
+16371d60f840d7e79e1ddc84e775bb8e *build/partial.rdb
 59e898187ee91bbd9061d18d242518cf *build/vignette.rds
 51a23ed55424705c1fbdde2e6efafd46 *inst/CITATION
 25f63a84ec95c39c9fa0d261100a644d *inst/REFERENCES.bib
@@ -16,7 +16,7 @@ aeb3dc158026a6f704fc991de7c18240 *build/partial.rdb
 2a33c016808841801938c7c7b2dcb1cb *inst/apa-old-doi-prefix.csl
 ce531b506117deb6f4ac070eb9fddea4 *inst/doc/Bayesian.R
 3f6ae57207d407a0a0ee8b8d7a1dd243 *inst/doc/Bayesian.Rmd
-bf03762e8463435851843eb71d6a0903 *inst/doc/Bayesian.html
+7f7a537b10a95c79ffcfbf18a1672633 *inst/doc/Bayesian.html
 a00c939dc653d021ee2e610bd66547b6 *inst/example/150.bs
 68df6f140a4fd6de2bd7b31ab3dde03b *inst/example/150.tre
 1a5aa2dd16b455f382a2470829825458 *man/GraphGeodesic.Rd
@@ -27,11 +27,11 @@ f0178630366d48dced1f5cad228b1cf9 *man/TipInstability.Rd
 45552a38794f0da0e1b75148fa6045f0 *man/figures/Rogue_talk.png
 f993a1f3a6b56306f253dd09ac19a1ec *src/Makevars
 deafc9b914f2d8e5e141b23f32a8c28a *src/Rogue_init.c
-5f4162da6447c269c206c55c0e62df75 *src/graph_geodesic.c
+a0515ba8cc4d5233d46bc3752d04b046 *src/graph_geodesic.c
 f2a65f277bab7d48fb86ffe366d040d2 *src/rnr/Array.c
 29b661cae0e47175f5db1314b27c8ad7 *src/rnr/Array.h
-1788823166c9bddf1843b6a5056eab5c *src/rnr/BitVector.c
-29d6e9cfef72259b84860948b322c570 *src/rnr/BitVector.h
+0018019ce434195b3b11502e2c429a82 *src/rnr/BitVector.c
+04791e98beb0eb2e13fd1b7077d7bbda *src/rnr/BitVector.h
 61722f9db751d7f7bd511d2c982a6a01 *src/rnr/Dropset.c
 5d656b63b456a1dfc585da5d4c2f217e *src/rnr/Dropset.h
 df05cd224954ff44320e384a5a212519 *src/rnr/HashTable.c
@@ -42,11 +42,11 @@ e3c29506253a2b137ee3cf4f90ac8880 *src/rnr/Node.c
 7be1edfa620d07fa9a2316ef3fe67daa *src/rnr/Node.h
 b41f8d0bfded8e80581f749f26655c87 *src/rnr/ProfileElem.c
 952358f89bc911faa2d77204bd866edf *src/rnr/ProfileElem.h
-2954a9d34079c54bda41253613bebe76 *src/rnr/RogueNaRok.c
-6af6ed035c83d8a8164d79664f95a0fc *src/rnr/Tree.c
+a25ee74c26e5db11aa6adba6e36691da *src/rnr/RogueNaRok.c
+c28b0c672e23931325d5d086f20c56b9 *src/rnr/Tree.c
 7bc181fdd7b95ff2fe5c417c7afa4149 *src/rnr/Tree.h
-9f70c0ab9d7de16bc407a4e44205ddc7 *src/rnr/common.c
-b9971ac8101a86fe6d159d978794c5fd *src/rnr/common.h
+9d4881d2feb151f9c59ef88c59fc20d6 *src/rnr/common.c
+56f4ff1f3ae946e613a5cff26e46d2e1 *src/rnr/common.h
 5afdf257cffc32566ce878ec857cdb74 *src/rnr/legacy.c
 735180912f27ff531db3746717818c6c *src/rnr/legacy.h
 ff8e8c7ae4321ba94a1190afbb552a0a *src/rnr/newFunctions.c
