@@ -1,6 +1,12 @@
+# Rogue v2.1.5
+
+- Call C functions using symbols, not strings.
+
+
 # Rogue v2.1.4
 
 - C2X compliant function prototypes.
+
 - Remove unused `sprintf()` calls.
 
 
