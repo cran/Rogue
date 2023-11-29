@@ -10,7 +10,8 @@ TipInstability(
   log = TRUE,
   average = "mean",
   deviation = "sd",
-  checkTips = TRUE
+  checkTips = TRUE,
+  parallel = FALSE
 )
 
 ColByStability(
@@ -35,6 +36,9 @@ calculate leaf stability.}
 
 \item{checkTips}{Logical specifying whether to check that tips are numbered
 consistently.}
+
+\item{parallel}{Logical specifying whether parallel execution should take
+place in C++.}
 
 \item{pal}{A vector listing a sequence of colours to be used for plotting.
 The earliest entries will be assigned to the most stable tips.}
@@ -71,9 +75,24 @@ measures \insertCite{Estabrook1992,Pol2009}{Rogue}.
 }
 \examples{
 library("TreeTools", quietly = TRUE)
+
+# Generate some trees with a rogue taxon
 trees <- AddTipEverywhere(BalancedTree(8), "Rogue")[3:6]
+
+# Display the strict consensus
 plot(consensus(trees), tip.col = ColByStability(trees))
+
+# Add a legend for the colour scale used
+PlotTools::SpectrumLegend(
+  "bottomleft", bty = "n", # No box
+  legend = c("Unstable", "", "Stable"),
+  palette = hcl.colors(131, "inferno")[1:101]
+)
+
+# Calculate leaf stability
 instab <- TipInstability(trees, log = FALSE, ave = "mean", dev = "mad")
+
+# Plot a consensus that omits the least stable leaves
 plot(ConsensusWithout(trees, names(instab[instab > 0.2])))
 }
 \references{

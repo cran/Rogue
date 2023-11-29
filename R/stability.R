@@ -80,13 +80,30 @@ Cophenetic <- function(x, nTip = length(x$tip.label), log = FALSE,
 #' calculate leaf stability.
 #' @param checkTips Logical specifying whether to check that tips are numbered
 #' consistently.
+#' @param parallel Logical specifying whether parallel execution should take
+#' place in C++.
 #' @references
 #' \insertAllCited{}
 #' @examples
 #' library("TreeTools", quietly = TRUE)
+#' 
+#' # Generate some trees with a rogue taxon
 #' trees <- AddTipEverywhere(BalancedTree(8), "Rogue")[3:6]
+#' 
+#' # Display the strict consensus
 #' plot(consensus(trees), tip.col = ColByStability(trees))
+#' 
+#' # Add a legend for the colour scale used
+#' PlotTools::SpectrumLegend(
+#'   "bottomleft", bty = "n", # No box
+#'   legend = c("Unstable", "", "Stable"),
+#'   palette = hcl.colors(131, "inferno")[1:101]
+#' )
+#' 
+#' # Calculate leaf stability
 #' instab <- TipInstability(trees, log = FALSE, ave = "mean", dev = "mad")
+#' 
+#' # Plot a consensus that omits the least stable leaves
 #' plot(ConsensusWithout(trees, names(instab[instab > 0.2])))
 #' @template MRS
 #' @family tip instability functions
@@ -94,8 +111,10 @@ Cophenetic <- function(x, nTip = length(x$tip.label), log = FALSE,
 #' @importFrom Rfast rowmeans rowMads rowVars
 #' @export
 TipInstability <- function(trees, log = TRUE, average = "mean",
-                            deviation = "sd",
-                            checkTips = TRUE) {
+                           deviation = "sd",
+                           checkTips = TRUE,
+                           parallel = FALSE
+                           ) {
   if (inherits(trees, "phylo") || length(trees) < 2L) {
     tips <- TipLabels(trees)
     return(setNames(double(length(tips)), tips))
@@ -122,8 +141,8 @@ TipInstability <- function(trees, log = TRUE, average = "mean",
     stop("`deviation` must be 'sd' or 'mad'")
   }
   devs <- matrix(switch(whichDev,
-                        rowVars(dists, std = TRUE, parallel = TRUE),
-                        rowMads(dists, parallel = TRUE)),
+                        rowVars(dists, std = TRUE, parallel = parallel),
+                        rowMads(dists, parallel = parallel)),
                  nTip, nTip)
   devs[is.nan(devs)] <- 0 # rowVars returns NaN instead of 0
   #diag(devs) <- 0 # Faster than setting to NA, then using rowMeans(rm.na = TRUE)
@@ -137,7 +156,10 @@ TipInstability <- function(trees, log = TRUE, average = "mean",
 
   relDevs <- devs / mean(aves[lower.tri(aves)])
 
-  setNames(Rfast::rowmeans(relDevs), TipLabels(trees[[1]]))
+  setNames(
+    Rfast::rowmeans(relDevs), # Faster than Rfast::colmeans
+    TipLabels(trees[[1]])
+  )
 }
 
 #' `ColByStability()` returns a colour reflecting the instability of each leaf.
@@ -183,13 +205,29 @@ ColByStability <- function(trees, log = TRUE,
 #' \insertAllCited{}
 #' @examples
 #' library("TreeTools", quietly = TRUE)
+#' 
+#' # Generate some trees with two rogue taxa
 #' trees <- AddTipEverywhere(BalancedTree(8), "Rogue")
 #' trees[] <- lapply(trees, AddTip, "Rogue", "Rogue2")
 #'
+#' # Calculate tip volatility
 #' sb <- TipVolatility(trees)
+#' 
+#' # Use volatility to colour leaves in consensus tree
 #' sbNorm <- 1 + (99 * (sb - min(sb)) / (max(sb - min(sb))))
 #' col <- hcl.colors(128, "inferno")[sbNorm]
 #' plot(consensus(trees), tip.color = col)
+#' 
+#' # Add a legend for the colour scale used
+#' PlotTools::SpectrumLegend(
+#'   "bottomleft", bty = "n", # Suppress box
+#'   inset = -0.02,           # Avoid overlap
+#'   title = "Volatility",
+#'   legend = signif(seq(max(sb), min(sb), length.out = 4), 3),
+#'   palette = hcl.colors(128, "inferno")
+#' )
+#' 
+#' # Plot consensus after removing highly volatile taxa
 #' plot(ConsensusWithout(trees, names(sb[sb == max(sb)])))
 #' @importFrom TreeDist PhylogeneticInfoDistance
 #' @importFrom TreeTools CladisticInfo DropTipPhylo

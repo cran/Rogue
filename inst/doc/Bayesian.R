@@ -46,8 +46,10 @@ plenary <- Consensus(trees, p = 0.5)
 
 par(mar = rep(0, 4), cex = 0.85)
 plot(plenary, tip.color = ColByStability(trees))
-SpectrumLegend(0.06, 0.06, legend = c("Stable", "Unstable"),
-               palette = hcl.colors(131, 'inferno')[1:101])
+PlotTools::SpectrumLegend(
+  "bottomright", legend = c("Stable", "Unstable"),
+  palette = hcl.colors(131, 'inferno')[1:101]
+)
 
 ## ----find-rogues--------------------------------------------------------------
 rogues <- QuickRogue(trees)
@@ -57,7 +59,7 @@ rogues
 # The first line reports the information content of the plenary tree
 rogueTaxa <- rogues$taxon[-1]
 
-## ----trees, fig.asp = 1/2, fig.width = 8--------------------------------------
+## ----trees, fig.asp = 1.2/2, fig.width = 8------------------------------------
 par(mar = rep(0, 4)) # Remove plot margin
 par(mfrow = c(1, 2)) # Multi-panel plot
 par(cex = 0.85) # Smaller labels
@@ -74,12 +76,6 @@ LabelSplits(reduced, SplitFrequency(reduced, trees))
 ## ----rogue-plot-trees, fig.width = 8, fig.asp = 2/3---------------------------
 par(mar = rep(0, 4), cex = 0.8)
 whichTaxon <- length(rogueTaxa) # Select an illuminating taxon
-positions <- RoguePlot(trees, rogueTaxa[whichTaxon], p = 0.5)
-
-# Plot a legend for the edge colours
-SpectrumLegend(0.06, 0.06,
-               legend = paste(range(positions$onEdge, positions$atNode),
-                              'trees'),
-               palette = colorRampPalette(c(par("fg"), "#009E73"),
-                                           space = "Lab")(100))
+positions <- RoguePlot(trees, rogueTaxa[whichTaxon], p = 0.5,
+                       legend = "bottomleft", legend.inset = 0.06)
 

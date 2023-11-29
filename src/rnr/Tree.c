@@ -34,7 +34,6 @@
 static int treeGetCh (FILE *fp) ;
 static void insertHashBootstop(uint32_t *bitVector, hashtable *h, uint32_t vectorLength, int treeNumber, int treeVectorLength, uint32_t position);
 static void  treeEchoContext (FILE *fp1, int n);
-static double getBranchLength(All *tr, int perGene, nodeptr p);
 boolean isTip(int number, int maxTips);
 void getxnode (nodeptr p);
 static void insertHashAll(uint32_t *bitVector, hashtable *h, uint32_t vectorLength, int treeNumber,  uint32_t position);
@@ -790,7 +789,10 @@ static void  treeEchoContext (FILE *fp1, int n)
       waswhite = FALSE;
     }
 
-    if (ch > '\0') {REprintf((const char*) &ch); n--;} // TODO improve R compatability
+    if (ch > '\0') {
+      // TODO improve R compatability
+      REprintf("%s", (const char*) &ch); n--;
+    }
   }
 }
 
