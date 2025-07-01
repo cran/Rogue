@@ -1,6 +1,6 @@
 Package: Rogue
 Title: Identify Rogue Taxa in Sets of Phylogenetic Trees
-Version: 2.1.6
+Version: 2.1.7
 Authors@R: c(person("Martin R.", 'Smith',
                     email = "martin.smith@durham.ac.uk", 
                     role = c("aut", "cre", "cph"), 
@@ -41,12 +41,12 @@ ByteCompile: true
 Encoding: UTF-8
 Language: en-GB
 VignetteBuilder: knitr
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 NeedsCompilation: yes
-Packaged: 2023-11-29 09:49:02 UTC; pjjg18
-Author: Martin R. Smith [aut, cre, cph]
-    (<https://orcid.org/0000-0001-5660-1727>),
+Packaged: 2025-07-01 11:31:04 UTC; pjjg18
+Author: Martin R. Smith [aut, cre, cph] (ORCID:
+    <https://orcid.org/0000-0001-5660-1727>),
   Andre J. Aberer [aut, cph]
 Maintainer: Martin R. Smith <martin.smith@durham.ac.uk>
 Repository: CRAN
-Date/Publication: 2023-11-29 11:10:02 UTC
+Date/Publication: 2025-07-01 11:50:02 UTC
