@@ -12,7 +12,7 @@
 
 <meta name="author" content="ORCiDMartin R. Smith, Durham University" />
 
-<meta name="date" content="2025-07-01" />
+<meta name="date" content="2026-03-25" />
 
 <title>Detecting rogue taxa in Bayesian posterior tree sets</title>
 
@@ -50,8 +50,9 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -62,7 +63,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -364,7 +365,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Detecting rogue taxa in Bayesian posterior
 tree sets</h1>
 <h4 class="author"><a href="https://orcid.org/0000-0001-5660-1727"><img role="img" aria-label="ORCiD" src="data:image/gif;base64,R0lGODdhEAAQAPMAAJLAKdPnnLfXXvT55qbOOd3ttLzaa////6zRRePwwQAAAAAAAAAAAAAAAAAAAAAAACwAAAAAEAAQAAAEVvDIUwy5xJQ5h8AgIQwdQhwBEBIIeXxnuooUBtyYiVUYCnAJnaWXOqgMg8LMZ7wYDsui6gJdMadPzDD2OyadSmpxErxsYDOMQDLQpVsddGjEkfC0m0kEADs=" alt="ORCiD" /></a>Martin R. Smith, Durham University</h4>
-<h4 class="date">2025-07-01</h4>
+<h4 class="date">2026-03-25</h4>
 
 
 
@@ -458,7 +459,7 @@ retaining these rogue taxa in our consensus tree.</p>
 <p><code>QuickRogue()</code> uses the quick heuristic method of <span class="citation">Smith (2022)</span>; <code>RogueTaxa()</code> supports
 Smith’s slower heuristic, which might find a set of rogue taxa that
 yield slightly more improvement to a consensus tree; it can also be
-configured to employ the RogueNaRok approach <span class="citation">(Aberer, Krompass, &amp; Stamatakis, 2013)</span>.</p>
+configured to employ the RogueNaRok approach <span class="citation">(Aberer et al., 2013)</span>.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>rogues <span class="ot">&lt;-</span> <span class="fu">QuickRogue</span>(trees)</span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co"># rogues &lt;- RogueTaxa(trees) might do a better job, much more slowly</span></span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>rogues</span></code></pre></div>
@@ -505,8 +506,7 @@ brighter locations.</p>
 <div id="ref-Aberer2013" class="csl-entry">
 Aberer, A. J., Krompass, D., &amp; Stamatakis, A. (2013). Pruning rogue
 taxa improves phylogenetic accuracy: An efficient algorithm and
-webservice. <em>Systematic Biology</em>, <em>62</em>(1), 162–166. doi:
-<a href="https://doi.org/10.1093/sysbio/sys078">10.1093/sysbio/sys078</a>
+webservice. <em>Systematic Biology</em>, <em>62</em>(1), 162–166. <a href="https://doi.org/10.1093/sysbio/sys078">https://doi.org/10.1093/sysbio/sys078</a>
 </div>
 <div id="ref-Hulsenbeck2001" class="csl-entry">
 Hulsenbeck, J., &amp; Ronquist, F. (2001). MrBayes: Bayesian inference
@@ -515,13 +515,13 @@ of phylogeny. <em>Bioinformatics</em>, <em>17</em>, 754–755.
 <div id="ref-SmithCons" class="csl-entry">
 Smith, M. R. (2022). Using information theory to detect rogue taxa and
 improve consensus trees. <em>Systematic Biology</em>, <em>71</em>(5),
-986–1008. doi: <a href="https://doi.org/10.1093/sysbio/syab099">10.1093/sysbio/syab099</a>
+986–1008. <a href="https://doi.org/10.1093/sysbio/syab099">https://doi.org/10.1093/sysbio/syab099</a>
 </div>
 <div id="ref-Sun2018" class="csl-entry">
 Sun, H., Smith, M. R., Zeng, H., Zhao, F., Li, G., &amp; Zhu, M. (2018).
 Hyoliths with pedicles illuminate the origin of the brachiopod body
 plan. <em>Proceedings of the Royal Society B: Biological Sciences</em>,
-<em>285</em>(1887), 20181780. doi: <a href="https://doi.org/10.1098/rspb.2018.1780">10.1098/rspb.2018.1780</a>
+<em>285</em>(1887), 20181780. <a href="https://doi.org/10.1098/rspb.2018.1780">https://doi.org/10.1098/rspb.2018.1780</a>
 </div>
 </div>
 </div>

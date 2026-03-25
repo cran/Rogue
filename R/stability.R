@@ -7,7 +7,6 @@
 #' number of edges between each pair of edges.
 #' @author Martin R. Smith, modifying algorithm by Emmanuel Paradis
 #' in `ape::dist.nodes()`.
-#' @importFrom ape dist.nodes
 #' @keywords internal
 #' @examples
 #' GraphGeodesic(TreeTools::BalancedTree(5))
@@ -107,8 +106,7 @@ Cophenetic <- function(x, nTip = length(x$tip.label), log = FALSE,
 #' plot(ConsensusWithout(trees, names(instab[instab > 0.2])))
 #' @template MRS
 #' @family tip instability functions
-#' @importFrom matrixStats rowMedians
-#' @importFrom Rfast rowmeans rowMads rowVars
+#' @importFrom Rfast rowmeans rowMads rowMedians rowVars
 #' @export
 TipInstability <- function(trees, log = TRUE, average = "mean",
                            deviation = "sd",
@@ -133,31 +131,67 @@ TipInstability <- function(trees, log = TRUE, average = "mean",
     nTip <- NTip(trees[[1]])
   }
 
-  dists <- vapply(trees, GraphGeodesic, double(nTip * nTip),
-                  nTip = nTip, log = log, asMatrix = FALSE)
+  lt_idx <- which(lower.tri(matrix(TRUE, nTip, nTip)))
+
+  nEdge <- nrow(trees[[1]]$edge)
+  nNode <- trees[[1]]$Nnode
+  # Batch C path requires uniform tree dimensions and log = TRUE
+  useBatch <- isTRUE(log) &&
+    all(vapply(trees, function(tr) nrow(tr$edge) == nEdge, logical(1)))
+
+  if (useBatch) {
+    # Batch C call: returns lower-triangle entries directly (nPairs × nTree)
+    # Ensure preorder (the per-tree GraphGeodesic path does this internally)
+    trees <- lapply(trees, Preorder)
+    parent_all <- integer(nEdge * length(trees))
+    child_all <- integer(nEdge * length(trees))
+    for (k in seq_along(trees)) {
+      rng <- (k - 1L) * nEdge + seq_len(nEdge)
+      parent_all[rng] <- trees[[k]]$edge[, 1] - 1L
+      child_all[rng] <- trees[[k]]$edge[, 2] - 1L
+    }
+    dists_lt <- matrix(
+      .Call(`LOG_GRAPH_GEODESIC_MULTI`,
+            n_tip = as.integer(nTip),
+            n_node = as.integer(nNode),
+            parent = as.integer(parent_all),
+            child = as.integer(child_all),
+            n_edge = as.integer(nEdge),
+            n_tree = as.integer(length(trees))),
+      ncol = length(trees)
+    )
+  } else {
+    dists <- vapply(trees, GraphGeodesic, double(nTip * nTip),
+                    nTip = nTip, log = log, asMatrix = FALSE)
+    dists_lt <- dists[lt_idx, , drop = FALSE]
+  }
+
+  # Auto-enable OpenMP parallelism for Rfast operations on large matrices
+  use_parallel <- parallel || nrow(dists_lt) > 1000L
 
   whichDev <- pmatch(tolower(deviation), c("sd", "mad"))
   if (is.na(whichDev)) {
     stop("`deviation` must be 'sd' or 'mad'")
   }
-  devs <- matrix(switch(whichDev,
-                        rowVars(dists, std = TRUE, parallel = parallel),
-                        rowMads(dists, parallel = parallel)),
-                 nTip, nTip)
-  devs[is.nan(devs)] <- 0 # rowVars returns NaN instead of 0
-  #diag(devs) <- 0 # Faster than setting to NA, then using rowMeans(rm.na = TRUE)
-
+  devs_lt <- switch(whichDev,
+                    rowVars(dists_lt, std = TRUE, parallel = use_parallel),
+                    rowMads(dists_lt, parallel = use_parallel))
+  devs_lt[is.nan(devs_lt)] <- 0
 
   whichAve <- pmatch(tolower(average), c("mean", "median"))
   if (is.na(whichAve)) {
     stop("`average` must be 'mean' or 'median'")
   }
-  aves <- matrix(switch(whichAve, rowmeans, rowMedians)(dists), nTip, nTip)
+  aves_lt <- switch(whichAve, rowmeans, Rfast::rowMedians)(dists_lt)
+  meanAve <- mean(aves_lt)
 
-  relDevs <- devs / mean(aves[lower.tri(aves)])
+  # Reconstruct symmetric deviation matrix from lower triangle
+  devs <- matrix(0, nTip, nTip)
+  devs[lt_idx] <- devs_lt
+  devs <- devs + t(devs)
 
   setNames(
-    Rfast::rowmeans(relDevs), # Faster than Rfast::colmeans
+    Rfast::rowmeans(devs) / meanAve, # faster than Rfast::colmeans
     TipLabels(trees[[1]])
   )
 }
@@ -168,7 +202,6 @@ TipInstability <- function(trees, log = TRUE, average = "mean",
 #' The earliest entries will be assigned to the most stable tips.
 #' @return `ColByStability()` returns a named character vector that assigns a
 #' colour to each leaf in `trees` according to their stability.
-#' @importFrom Rfast Log
 #' @importFrom grDevices hcl.colors
 #' @importFrom stats cmdscale setNames
 #' @importFrom TreeTools TipLabels
@@ -206,7 +239,7 @@ ColByStability <- function(trees, log = TRUE,
 #'
 #' @inheritParams RogueTaxa
 #' @return `TipVolatility()` returns a named vector listing the volatility
-#' index calculated for each leaf.
+#' index calculated for each leaf. Higher values indicate more volatile leaves.
 #' @references
 #' \insertAllCited{}
 #' @examples
